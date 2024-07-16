@@ -1,25 +1,65 @@
 from .conica import Conica
 import numpy as np
+import math
 from typing import Optional, Tuple, List
+
 
 class Elipse(Conica):
     def pontosEspeciais(self) -> None:
-        x0: float = (2 * self.C * self.D - self.B * self.E) / (self.B**2 - 4 * self.A * self.C)
-        y0: float = (2 * self.A * self.E - self.B * self.D) / (self.B**2 - 4 * self.A * self.C)
+        x0: float = (2 * self.C * self.D - self.B * self.E) / (
+            self.B**2 - 4 * self.A * self.C
+        )
+        y0: float = (2 * self.A * self.E - self.B * self.D) / (
+            self.B**2 - 4 * self.A * self.C
+        )
         self.centro = (x0, y0)
 
-        num: float = 2 * (self.A * self.E**2 + self.C * self.D**2 + \
-                          self.F * self.B**2 - 2 * self.B * self.D * self.E - self.A * self.C * self.F)
+        theta = -0.5 * math.atan2(-self.B, self.C - self.A)
+        num1 = (
+            self.A * self.E**2
+            + self.C * self.D**2
+            - self.B * self.D * self.E
+            + (self.B**2 - 4 * self.A * self.C) * self.F
+        )
+        num2 = (self.A + self.C) + math.sqrt((self.A - self.C) ** 2 + self.B**2)
+        num3 = (self.A + self.C) - math.sqrt((self.A - self.C) ** 2 + self.B**2)
 
-        denom1: float = (self.B**2 - 4 * self.A * self.C) * \
-        ((self.C - self.A) * np.sqrt(1 + 4 * self.B**2 / ((self.A - self.C)**2)) - (self.C + self.A))
+        denom = self.B**2 - 4 * self.A * self.C
+        a = -math.sqrt(2 * num1 * num2) / denom
+        b = -math.sqrt(2 * num1 * num3) / denom
+        if a > b:
+            v1x = ((a - x0) * np.cos(theta)) - (y0 * np.sin(theta))
+            v1y = -((a - x0) * np.sin(theta)) - (y0 * np.cos(theta))
+            v2x = ((-a - x0) * np.cos(theta)) - (y0 * np.sin(theta))
+            v2y = -((-a - x0) * np.sin(theta)) - (y0 * np.cos(theta))
 
-        denom2: float = (self.B**2 - 4 * self.A * self.C) * \
-        ((self.A - self.C) * np.sqrt(1 + 4 * self.B**2 / ((self.A - self.C)**2)) - (self.C + self.A))
-        a: float = np.sqrt(num / denom1)
-        b: float = np.sqrt(num / denom2)
+            self.vertices = [(v1x, v1y), (v2x, v2y)]
 
-        self.vertices = [(x0 - a, y0), (x0 + a, y0), (x0, y0 - b), (x0, y0 + b)]
+            c = np.sqrt(a**2 - b**2)
 
-        c: float = np.sqrt(a**2 - b**2)
-        self.foco = [(x0 - c, y0), (x0 + c, y0)]
+            f1x = (c - x0) * np.cos(theta) - (y0 * np.sin(theta))
+            f1y = -(c - x0) * np.sin(theta) - (y0 * np.cos(theta))
+
+            f2x = (-c - x0) * np.cos(theta) - (y0 * np.sin(theta))
+            f2y = -(-c - x0) * np.sin(theta) - (y0 * np.cos(theta))
+
+            self.foco = [(f1x, f1y), (f2x, f2y)]
+
+        else:
+            v1x = -x0 * np.cos(theta) + ((b - y0) * np.sin(theta))
+            v1y = x0 * np.sin(theta) + ((b - y0) * np.cos(theta))
+
+            v2x = -x0 * np.cos(theta) + ((-b - y0) * np.sin(theta))
+            v2y = x0 * np.sin(theta) + ((-b - y0) * np.cos(theta))
+
+            self.vertices = [(v1x, v1y), (v2x, v2y)]
+
+            c = np.sqrt(b**2 - a**2)
+
+            f1x = -x0 * np.cos(theta) + ((c - y0) * np.sin(theta))
+            f1y = x0 * np.sin(theta) + ((c - y0) * np.cos(theta))
+
+            f2x = -x0 * np.cos(theta) + ((-c - y0) * np.sin(theta))
+            f2y = x0 * np.sin(theta) + ((-c - y0) * np.cos(theta))
+
+            self.foco = [(f1x, f1y), (f2x, f2y)]
